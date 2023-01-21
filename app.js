@@ -121,12 +121,12 @@ app.delete("/movies/:movieId/", async (request, response) => {
 //GET director table details API
 
 app.get("/directors/", async (request, response) => {
-  const getDirectorsDetailsQuery = `
+  const getDirectorsDetails = `
     SELECT 
        *
     FROM
        director;`;
-  const directorsArray = await db.all(getDirectorsDetailsQuery);
+  const directorsArray = await db.all(getDirectorsDetails);
   response.send(
     directorsArray.map((director) => getDirectorsDetails(director))
   );
