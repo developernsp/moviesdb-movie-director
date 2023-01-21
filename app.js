@@ -28,6 +28,22 @@ const getMovieNames = (movie) => {
   return { movieName: movie.movie_name };
 };
 
+const getMovieDetails = (movie) => {
+  return {
+    movieId: movie.movie_id,
+    directorId: movie.director_id,
+    movieName: movie.movie_name,
+    leadActor: movie.lead_actor,
+  };
+};
+
+const getDirectorsDetails = (director) => {
+  return {
+    directorId: director.director_id,
+    directorName: director.director_name,
+  };
+};
+
 //GET movies API
 app.get("/movies/", async (request, response) => {
   const getMoviesQuery = `
@@ -67,7 +83,7 @@ app.get("/movies/:movieId/", async (request, response) => {
             movie_id = ${movieId};`;
 
   const movie = await db.get(getMovieQuery);
-  response.send(movie);
+  response.send(getMovieDetails(movie));
 });
 
 //PUT movie API
@@ -79,8 +95,8 @@ app.put("/movies/:movieId/", async (request, response) => {
   const updateMovieQuery = `
         UPDATE movie
         SET 
-             movie_id = ${movieId},
              director_id = ${directorId},
+             movie_name = "${movieName}",
              lead_actor = "${leadActor}"
         WHERE 
              movie_id = ${movieId};`;
@@ -101,3 +117,33 @@ app.delete("/movies/:movieId/", async (request, response) => {
   await db.run(deleteMovieQuery);
   response.send("Movie Removed");
 });
+
+//GET director table details API
+
+app.get("/directors/", async (request, response) => {
+  const getDirectorsDetailsQuery = `
+    SELECT 
+       *
+    FROM
+       director;`;
+  const directorsArray = await db.all(getDirectorsDetailsQuery);
+  response.send(
+    directorsArray.map((director) => getDirectorsDetails(director))
+  );
+});
+
+//GET director all movies API
+app.get("/directors/:directorId/movies/", async (request, response) => {
+  const { directorId } = request.params;
+  const getDirectorMoviesQuery = `
+       SELECT 
+            *
+       FROM 
+            movie 
+       NATURAL JOIN director
+       WHERE director_id = ${directorId};`;
+  const directorMoviesArray = await db.all(getDirectorMoviesQuery);
+  response.send(directorMoviesArray.map((movie) => getMovieNames(movie)));
+});
+
+module.exports = app;
